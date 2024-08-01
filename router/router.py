@@ -1,14 +1,10 @@
 from fastapi import APIRouter,status,UploadFile,Depends
 from fastapi.responses import JSONResponse
-from database.database import get_db
-# from model.model import task
 from sqlalchemy.orm import Session
 from main import app
 from schemas.schemas import user
-# from schemas.schemas import taskschema
-# from model.model import task
-# from schemas.schemas import responsetask
-from model.model import User
+from database.model import User
+from database.database import get_db
 router = APIRouter(
     tags=["API"],
     prefix="/api"
