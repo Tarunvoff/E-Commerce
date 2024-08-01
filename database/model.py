@@ -1,9 +1,12 @@
 from database.database import Base
-from sqlalchemy import (Column,String,Boolean,Integer,UniqueConstraint,DateTime,Enum)
-from sqlalchemy import Column, Integer, String, Boolean, UniqueConstraint
+from sqlalchemy import (
+    Column, String, Boolean, Integer, UniqueConstraint, DateTime, Enum
+)
 from sqlalchemy.ext.declarative import declarative_base
 
+
 Base = declarative_base()
+
 
 class User(Base):
     __tablename__ = "user"
@@ -13,12 +16,12 @@ class User(Base):
     )
     
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, nullable=False) 
+    username = Column(String, nullable=False)
     email = Column(String, nullable=False)
-    is_active = Column(Boolean, nullable=False, default=True)  
+    is_active = Column(Boolean, nullable=False, default=True)
     mobno = Column(String, nullable=False)
     password = Column(String, nullable=False)
-    hashed_password = Column(String, nullable=False)
+
 
 
     
