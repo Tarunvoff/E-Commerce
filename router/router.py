@@ -2,7 +2,7 @@ from fastapi import APIRouter, status, UploadFile, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-#from main import app
+
 from schemas import schemas
 from utility import utility
 from database import model
