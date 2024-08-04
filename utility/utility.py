@@ -20,10 +20,9 @@ def get_password_hashed(password):
     return pwd_context.hash(password)
 
 
-# def get_user(db, username: str):
-#     if username in db:
-#         user_data = db[username]
-#         return UserInDb(**user_data)
-
+def get_user(db, username: str):
+    if username in db:
+        user_data = db[username]
+    return
 
 
