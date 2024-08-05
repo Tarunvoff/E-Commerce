@@ -54,7 +54,7 @@ async def create_user(
     new_user = model.User(
         username=username,
         email=email,
-        hashed_password=hashed_password,
+        password=hashed_password,
         is_active=is_active,
         mobno=mobno
     )
@@ -83,7 +83,8 @@ async def create_user(
 #     )
 # END OF CREATING A USER
 
-# Login method
+
+
 @router.get("/login", response_class=HTMLResponse)
 async def login_form(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
@@ -96,18 +97,88 @@ async def login(
     password: str = Form(...),
     db: Session = Depends(get_db)
 ):
+    # Retrieve user from the database
     user = db.query(model.User).filter(model.User.username == username).first()
-    if not user or not utility.verify_password(password, user.hashed_password):
+
+    # Check if the user exists
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password"
+            detail="Incorrect username",
         )
 
-    # login_user(user, remember=True)
+    # Verify the password
+    if not utility.verify_password(password, user.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect password",
+        )
     
-    return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+    # Redirect to home page on successful login
+    return RedirectResponse(url="/welcome", status_code=status.HTTP_302_FOUND)
 
 
-@router.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    return templates.TemplateResponse("welcome.html", {"request": request})
+@router.get("/welcome", response_class=HTMLResponse)
+async def welcome(request: Request, username: str):
+    return templates.TemplateResponse("welcome.html", {"request": request, "username": username})
+
+# # Login method
+# @router.get("/login", response_class=HTMLResponse)
+# async def login_form(request: Request):
+#     return templates.TemplateResponse("login.html", {"request": request})
+
+
+# @router.post("/login", response_class=HTMLResponse)
+# async def login(
+#     request: Request,
+#     username: str = Form(...),
+#     password: str = Form(...),
+#     db: Session = Depends(get_db)
+# ):
+#     user = db.query(model.User).filter(model.User.username == username).first()
+#     if not user :
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="Incorrect username "
+#         )
+#     if not not utility.verify_password(password, user.password):
+#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="Incorrect Password"
+#         )
+    
+#     return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+
+
+# @router.get("/", response_class=HTMLResponse)
+# async def read_root(request: Request):
+#     return templates.TemplateResponse("welcome.html", {"request": request})
+
+
+
+
+# # Route to handle login logic
+# @app.post("/login", response_class=HTMLResponse)
+# async def login(
+#     request: Request,
+#     username: str = Form(...),
+#     password: str = Form(...),
+#     db: Session = Depends(get_db)
+# ):
+#     user = db.query(model.User).filter(model.User. username == username).first()
+#     if not user:
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="Incorrect username"
+#         )
+#     if not verify_password(password, user.password):
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="Incorrect password"
+#         )
+    
+#     return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
+
+# # Route to render the welcome page
+# @app.get("/", response_class=HTMLResponse)
+# async def read_root(request: Request):
+#     return templates.TemplateResponse("welcome.html", {"request": request})

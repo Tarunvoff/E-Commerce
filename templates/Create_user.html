@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Create User </title>
-    <link rel="stylesheet" href="Create_userStyle.css">
+    <link rel="stylesheet" href="/static/Create_userStyle.css">
+
 </head>
 <body>
-    <form action="router\router.py/create-user" method="post">
+    <form action="/api/create-user" method="post">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required><br>
 

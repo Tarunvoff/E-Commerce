@@ -11,5 +11,10 @@ model.Base.metadata.create_all(engine)
 
 app.include_router(router)
 
-app.mount("/static", StaticFiles(directory="static\css"), name="static")
+#app.mount("/static", StaticFiles(directory="static"), name="static")
 
+
+
+#app = FastAPI()
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
