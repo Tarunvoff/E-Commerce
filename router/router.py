@@ -62,29 +62,12 @@ async def create_user(
     db.commit()
     db.refresh(new_user)
 
+    #return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+
     return templates.TemplateResponse("user_created.html", {"request": request, "username": username})
 
-# @router.post("/create-user")
-# def create_user(request: schemas.UserSchema, db: Session = Depends(get_db)):
-#     hashed_password = utility.get_password_hashed(request.password)
-#     new_user = model.User(
-#         username=request.username,
-#         email=request.email,
-#         is_active=request.is_active,
-#         mobno=request.mobno,
-#         password=hashed_password
-#     )
-#     db.add(new_user)
-#     db.commit()
-#     db.refresh(new_user)
-#     return JSONResponse(
-#         status_code=status.HTTP_201_CREATED,
-#         content={"message": "User created successfully"}
-#     )
-# END OF CREATING A USER
 
-
-
+#LOGIN 
 @router.get("/login", response_class=HTMLResponse)
 async def login_form(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
@@ -116,70 +99,8 @@ async def login(
     
     # Redirect to home page on successful login
     return templates.TemplateResponse("welcome.html", {"request": request})
-    #return RedirectResponse(url="/welcome", status_code=status.HTTP_302_FOUND)
-
+    
 
 @router.get("/welcome", response_class=HTMLResponse)
 async def welcome(request: Request, username: str):
     return templates.TemplateResponse("welcome.html", {"request": request, "username": username})
-
-# # Login method
-# @router.get("/login", response_class=HTMLResponse)
-# async def login_form(request: Request):
-#     return templates.TemplateResponse("login.html", {"request": request})
-
-
-# @router.post("/login", response_class=HTMLResponse)
-# async def login(
-#     request: Request,
-#     username: str = Form(...),
-#     password: str = Form(...),
-#     db: Session = Depends(get_db)
-# ):
-#     user = db.query(model.User).filter(model.User.username == username).first()
-#     if not user :
-#         raise HTTPException(
-#             status_code=status.HTTP_401_UNAUTHORIZED,
-#             detail="Incorrect username "
-#         )
-#     if not not utility.verify_password(password, user.password):
-#         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-#             detail="Incorrect Password"
-#         )
-    
-#     return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
-
-
-# @router.get("/", response_class=HTMLResponse)
-# async def read_root(request: Request):
-#     return templates.TemplateResponse("welcome.html", {"request": request})
-
-
-
-
-# # Route to handle login logic
-# @app.post("/login", response_class=HTMLResponse)
-# async def login(
-#     request: Request,
-#     username: str = Form(...),
-#     password: str = Form(...),
-#     db: Session = Depends(get_db)
-# ):
-#     user = db.query(model.User).filter(model.User. username == username).first()
-#     if not user:
-#         raise HTTPException(
-#             status_code=status.HTTP_401_UNAUTHORIZED,
-#             detail="Incorrect username"
-#         )
-#     if not verify_password(password, user.password):
-#         raise HTTPException(
-#             status_code=status.HTTP_401_UNAUTHORIZED,
-#             detail="Incorrect password"
-#         )
-    
-#     return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
-
-# # Route to render the welcome page
-# @app.get("/", response_class=HTMLResponse)
-# async def read_root(request: Request):
-#     return templates.TemplateResponse("welcome.html", {"request": request})
