@@ -115,7 +115,8 @@ async def login(
         )
     
     # Redirect to home page on successful login
-    return RedirectResponse(url="/welcome", status_code=status.HTTP_302_FOUND)
+    return templates.TemplateResponse("welcome.html", {"request": request})
+    #return RedirectResponse(url="/welcome", status_code=status.HTTP_302_FOUND)
 
 
 @router.get("/welcome", response_class=HTMLResponse)
