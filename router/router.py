@@ -8,10 +8,12 @@ from sqlalchemy.orm import Session
 from fastapi.templating import Jinja2Templates
 from typing import Optional
 
+
 from schemas import schemas
 from utility import utility
 from database import model
 from database.database import get_db
+
 
 router = APIRouter(
     tags=["API"],
@@ -19,6 +21,7 @@ router = APIRouter(
 )
 
 templates = Jinja2Templates(directory="templates")
+
 
 # CREATING A USER
 @router.get("/create-user", response_class=HTMLResponse)
