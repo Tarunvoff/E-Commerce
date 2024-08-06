@@ -13,6 +13,16 @@ class UserSchema(BaseModel):
 
     class Config:
         from_attributes = True
+class ProductSchema(BaseModel):
+    name: str
+    description: str
+    price: float
+    image_url: str
+    stock: int
+
+    class Config:
+        from_attributes = True
+
 
 
 

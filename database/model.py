@@ -1,6 +1,6 @@
 from database.database import Base
 from sqlalchemy import (
-    Column, String, Boolean, Integer, UniqueConstraint, DateTime, Enum,func
+    Column, String, Boolean, Integer, UniqueConstraint, DateTime, Enum,func,Float
 )
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -27,6 +27,20 @@ class User(DefaultColumn):
     is_active = Column(Boolean, nullable=False, default=True)
     mobno = Column(String, nullable=False)
     password = Column(String, nullable=False)
+
+class Products(DefaultColumn):
+    __tablename__ = "products"
+    __table_args__ = (
+        UniqueConstraint('name'),
+        {'extend_existing': True}
+    )
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=False)
+    price = Column(Float, nullable=False)  
+    image_url = Column(String, nullable=False)
+    stock = Column(Integer, nullable=False)
+
 
 
 

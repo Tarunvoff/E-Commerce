@@ -13,6 +13,7 @@ from schemas import schemas
 from utility import utility
 from database import model
 from database.database import get_db
+from database.model import Products
 
 
 router = APIRouter(
@@ -104,3 +105,37 @@ async def login(
 @router.get("/welcome", response_class=HTMLResponse)
 async def welcome(request: Request, username: str):
     return templates.TemplateResponse("welcome.html", {"request": request, "username": username})
+
+
+# ADD PRODUCT ROUTER
+@router.get("/add-product", response_class=HTMLResponse)
+async def create_product_form(request: Request):
+    return templates.TemplateResponse("addproduct.html", {"request": request})
+
+@router.post("/add-product")
+async def add_product(
+    request: Request,
+    name: str = Form(...),
+    description: str = Form(...),
+    price: float = Form(...),
+    stock: int = Form(...),
+    image_url: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    new_product = Products(
+        name=name, 
+        description=description, 
+        price=price, 
+        image_url=image_url, 
+        stock=stock
+    )
+    db.add(new_product)
+    db.commit()
+    db.refresh(new_product)
+    return templates.TemplateResponse("product_added.html", {"request": request})
+
+
+@router.get("/products", response_class=HTMLResponse)
+def read_products(request: Request, db: Session = Depends(get_db)):
+    products = db.query(Products).all()
+    return templates.TemplateResponse("product.html", {"request": request, "products": products})
