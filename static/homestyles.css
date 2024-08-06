@@ -1,0 +1,60 @@
+/* Reset some default browser styles */
+/* Apply a background color to the entire page */
+body {
+    background-color: #ffffff; /* Soft Light Gray */
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333333; /* Charcoal */
+}
+
+/* Apply a background color to the section element */
+section {
+    background-color: #dcd5d5; /* White */
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Container for horizontally displaying products */
+.products-container {
+    display: flex;
+    flex-wrap: wrap; /* Allows items to wrap to the next line */
+    gap: 20px; /* Space between items */
+    justify-content: center; /* Center items horizontally */
+}
+
+/* Style for each product item */
+.product-item {
+    background-color: #ff6f61; /* Light Coral */
+    color: #ffffff; /* White Text */
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: calc(25% - 20px); /* Adjust width according to how many items you want per row */
+    text-align: center;
+}
+
+.product-item img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+
+h3 {
+    margin: 10px 0;
+}
+
+p {
+    margin: 5px 0;
+}
+
+/* Additional styling for links */
+a {
+    color: #ff6f61; /* Light Coral */
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}

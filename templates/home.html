@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+    <link rel="stylesheet" href="/static/homestyles.css"> <!-- Link to your CSS file -->
+</head>
+<body>
+    <header>
+        <h1>Product List</h1>
+    </header>
+    <main>
+        <section>
+            <h2>Available Products</h2>
+            <div class="products-container">
+                {% if products %}
+                    {% for product in products %}
+                        <div class="product-item">
+                            <img src="{{ product.image_url }}" alt="{{ product.name }}">
+                            <h3>{{ product.name }}</h3>
+                            <p>Description: {{ product.description }}</p>
+                            <p>Price: ${{ product.price }}</p>
+                            <p>Stock: {{ product.stock }}</p>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No products available.</p>
+                {% endif %}
+            </div>
+            <div class="add-product-container">
+                <a href="/add-product" class="add-product-button">Add New Product</a>
+                
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 Your Company</p>
+    </footer>
+</body>
+</html>
+

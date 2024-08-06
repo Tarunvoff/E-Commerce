@@ -63,9 +63,10 @@ async def create_user(
     db.commit()
     db.refresh(new_user)
 
-    #return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+    return RedirectResponse(url="/api/login", status_code=status.HTTP_302_FOUND)
 
-    return templates.TemplateResponse("user_created.html", {"request": request, "username": username})
+    
+    #return templates.TemplateResponse("user_created.html", {"request": request, "username": username})
 
 
 #LOGIN 
@@ -99,7 +100,8 @@ async def login(
         )
     
     # Redirect to home page on successful login
-    return templates.TemplateResponse("welcome.html", {"request": request})
+    #return templates.TemplateResponse("home.html", {"request": request})
+    return RedirectResponse(url="/api/home", status_code=status.HTTP_302_FOUND)
     
 
 @router.get("/welcome", response_class=HTMLResponse)
@@ -139,3 +141,11 @@ async def add_product(
 def read_products(request: Request, db: Session = Depends(get_db)):
     products = db.query(Products).all()
     return templates.TemplateResponse("product.html", {"request": request, "products": products})
+
+
+@router.get("/home", response_class=HTMLResponse)
+async def home(request: Request, db: Session = Depends(get_db)):
+    products = db.query(Products).all()  
+    return templates.TemplateResponse("home.html", {"request": request, "products": products})
+
+
