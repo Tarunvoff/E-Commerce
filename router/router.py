@@ -149,3 +149,4 @@ async def home(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse("home.html", {"request": request, "products": products})
 
 
+
