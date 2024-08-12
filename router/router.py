@@ -1,6 +1,6 @@
 from fastapi import (
     APIRouter, status, UploadFile, Depends,
-    HTTPException, Request, Form
+    HTTPException, Request, Form,Query
 )
 from fastapi.responses import JSONResponse, HTMLResponse
 from starlette.responses import RedirectResponse
@@ -147,6 +147,100 @@ def read_products(request: Request, db: Session = Depends(get_db)):
 async def home(request: Request, db: Session = Depends(get_db)):
     products = db.query(Products).all()  
     return templates.TemplateResponse("home.html", {"request": request, "products": products})
+
+# #update the features
+# @router.update("/update-product/{{id}}", response_class=HTMLResponse)
+# async def update_product_form(request: Request, id: int, db: Session = Depends(get_db)):
+#     product = db.query(Products).filter(Products.id == id).first()
+#     return templates.TemplateResponse("updateproduct.html", {"request": request, "product": product})
+
+#update
+@router.get("/update-product", response_class=HTMLResponse)
+async def update_product_form(request: Request, id: int, db: Session = Depends(get_db)):
+    # Check if ID is provided - This is technically redundant since `id` is a path parameter
+    if not id:
+        return JSONResponse(status_code=400, content={"detail": "Product ID is required"})
+    
+    # Query the database for the product with the given ID
+    product = db.query(Products).filter(Products.id == id).first()
+    
+    # Return an error if the product is not found
+    if not product:
+        return JSONResponse(status_code=404, content={"detail": "Product not found"})
+    
+    # Render the form with the product details
+    return templates.TemplateResponse("updateproduct.html", {"request": request, "product": product})
+
+
+@router.post("/update-product", response_class=HTMLResponse)
+async def update_product(
+    request: Request,
+    id: int = Form(...),
+    name: str = Form(...),
+    description: str = Form(...),
+    price: float = Form(...),
+    quantity: int = Form(...),
+    image_url: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    # Query the database for the product with the given ID
+    product = db.query(Products).filter(Products.id == id).first()
+    
+    # If the product is found, update its details
+    if product:
+        product.name = name
+        product.description = description
+        product.price = price
+        product.stock = quantity
+        product.image_url = image_url
+
+        db.commit()
+        db.refresh(product)
+        
+        # Render the success template
+        return templates.TemplateResponse("product_added.html", {"request": request, "product": product})
+    
+    # Return an error if the product is not found
+
+    return JSONResponse(status_code=404, content={"detail": "Product not found"})
+@router.get("/delete-product", response_class=HTMLResponse)
+async def delete_product_form(request: Request, id: int, db: Session = Depends(get_db)):
+    if not id:
+        return JSONResponse(status_code=400, content={"detail": "Product ID is required"})
+    
+    # Fetch the product from the database
+    product = db.query(Products).filter(Products.id == id).first()
+    
+    if not product:
+        return JSONResponse(status_code=404, content={"detail": "Product not found"})
+    
+    # Render an HTML page or form for confirmation
+    return templates.TemplateResponse("delproduct.html", {"request": request, "product": product})
+   
+    
+ 
+@router.post("/delete-product")
+async def delete_product(id: int, db: Session = Depends(get_db)):
+    # Fetch the product from the database
+    product = db.query(Products).filter(Products.id == id).first()
+    
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    # Delete the product
+    db.delete(product)
+    db.commit()
+    
+    # Redirect to a success page or homepage
+    return RedirectResponse(url="/api/home", status_code=302)
+
+
+
+
+
+
+
+
 
 
 

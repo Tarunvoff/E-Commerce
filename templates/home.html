@@ -27,11 +27,30 @@
                     <p>No products available.</p>
                 {% endif %}
             </div>
-            <div class="add-product-container">
+            <div class="product-actions">
                 <a href="/api/add-product" class="add-product-button">Add New Product</a>
+            </div>
+            <div>
+                <h1>Enter Product ID for Updating</h1>
+        
+                <!-- Form to submit product ID -->
+                <form action="/api/update-product" method="get">
+                    <label for="id">Product ID:</label>
+                    <input type="text" id="id" name="id" required>
+                    <button type="submit">Submit</button>
+                </form>
+            </div>
+            <div>
+                <h1>Enter Product ID for Deleting </h1>
+                <form action="/api/delete-product" method="get">
+                    <label for="id">Product ID:</label>
+                    <input type="text" id="id" name="id" required>
+                    <button type="submit">Submit</button>
+                </form>
 
             </div>
-        </section>
+    
+    </section>
     </main>
     <footer>
         <p>&copy; 2024 Your Company</p>
