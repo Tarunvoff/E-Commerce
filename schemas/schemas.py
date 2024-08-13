@@ -22,6 +22,14 @@ class ProductSchema(BaseModel):
 
     class Config:
         from_attributes = True
+        
+class TokenSchema(BaseModel):
+    token: str
+    user_id: int
+
+    class Config:
+        from_attributes = True
+
 
 
 

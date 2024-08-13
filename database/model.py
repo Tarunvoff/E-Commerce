@@ -1,8 +1,9 @@
 from database.database import Base
 from sqlalchemy import (
-    Column, String, Boolean, Integer, UniqueConstraint, DateTime, Enum,func,Float
+    Column, String, Boolean, Integer, UniqueConstraint, DateTime, Enum,func,Float,ForeignKey
 )
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
 
 Base = declarative_base()
@@ -27,6 +28,7 @@ class User(DefaultColumn):
     is_active = Column(Boolean, nullable=False, default=True)
     mobno = Column(String, nullable=False)
     password = Column(String, nullable=False)
+    tokens = relationship("Token", back_populates="user")
 
 class Products(DefaultColumn):
     __tablename__ = "products"
@@ -40,6 +42,13 @@ class Products(DefaultColumn):
     price = Column(Float, nullable=False)  
     image_url = Column(String, nullable=False)
     stock = Column(Integer, nullable=False)
+
+class Token(Base):
+    __tablename__ = "tokens"
+    id = Column(Integer, primary_key=True, index=True)
+    token = Column(String, unique=True, index=True)
+    user_id = Column(Integer, ForeignKey("user.id"))
+    user = relationship("User", back_populates="tokens")
 
 
 

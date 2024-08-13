@@ -14,6 +14,7 @@ from utility import utility
 from database import model
 from database.database import get_db
 from database.model import Products
+from security.security import verify_token
 
 
 router = APIRouter(
@@ -122,7 +123,8 @@ async def add_product(
     price: float = Form(...),
     stock: int = Form(...),
     image_url: str = Form(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    username: str = Depends(verify_token)
 ):
     new_product = Products(
         name=name, 
@@ -200,7 +202,7 @@ async def update_product(
         # Render the success template
         return templates.TemplateResponse("product_added.html", {"request": request, "product": product})
     
-    # Return an error if the product is not found
+    
 
     return JSONResponse(status_code=404, content={"detail": "Product not found"})
 @router.get("/delete-product", response_class=HTMLResponse)
@@ -208,13 +210,13 @@ async def delete_product_form(request: Request, id: int, db: Session = Depends(g
     if not id:
         return JSONResponse(status_code=400, content={"detail": "Product ID is required"})
     
-    # Fetch the product from the database
+    
     product = db.query(Products).filter(Products.id == id).first()
     
     if not product:
         return JSONResponse(status_code=404, content={"detail": "Product not found"})
     
-    # Render an HTML page or form for confirmation
+    
     return templates.TemplateResponse("delproduct.html", {"request": request, "product": product})
    
     
