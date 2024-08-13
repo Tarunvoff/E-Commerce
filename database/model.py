@@ -43,7 +43,7 @@ class Products(DefaultColumn):
     image_url = Column(String, nullable=False)
     stock = Column(Integer, nullable=False)
 
-class Token(Base):
+class Token(DefaultColumn):
     __tablename__ = "tokens"
     id = Column(Integer, primary_key=True, index=True)
     token = Column(String, unique=True, index=True)

@@ -15,6 +15,8 @@ from database import model
 from database.database import get_db
 from database.model import Products
 from security.security import verify_token
+from security.security import create_access_token
+from schemas.schemas import TokenSchema
 
 
 router = APIRouter(
@@ -71,6 +73,7 @@ async def create_user(
 
 
 #LOGIN 
+# 
 @router.get("/login", response_class=HTMLResponse)
 async def login_form(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
@@ -100,10 +103,16 @@ async def login(
             detail="Incorrect password",
         )
     
-    # Redirect to home page on successful login
-    #return templates.TemplateResponse("home.html", {"request": request})
-    return RedirectResponse(url="/api/home", status_code=status.HTTP_302_FOUND)
+    # Create an access token
+    access_token = create_access_token(data={"sub": user.id}, db=db)
+    # access_token = create_access_token(data={"sub": user.id},db=db)
     
+    # Optionally, you could set the token in a cookie or return it in the response
+    # Here, I am returning it as a JSON response
+    response = RedirectResponse(url="/api/home", status_code=status.HTTP_302_FOUND)
+    response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True)
+
+    return response
 
 @router.get("/welcome", response_class=HTMLResponse)
 async def welcome(request: Request, username: str):
@@ -115,7 +124,8 @@ async def welcome(request: Request, username: str):
 async def create_product_form(request: Request):
     return templates.TemplateResponse("addproduct.html", {"request": request})
 
-@router.post("/add-product")
+
+@router.post("/add-product", response_class=HTMLResponse)
 async def add_product(
     request: Request,
     name: str = Form(...),
@@ -124,19 +134,28 @@ async def add_product(
     stock: int = Form(...),
     image_url: str = Form(...),
     db: Session = Depends(get_db),
-    username: str = Depends(verify_token)
+    user_id: int = Depends(verify_token)  # Get the user ID from the token
 ):
-    new_product = Products(
-        name=name, 
-        description=description, 
-        price=price, 
-        image_url=image_url, 
-        stock=stock
-    )
-    db.add(new_product)
-    db.commit()
-    db.refresh(new_product)
-    return templates.TemplateResponse("product_added.html", {"request": request})
+    try:
+        # Create a new product instance
+        new_product = Products(
+            name=name, 
+            description=description, 
+            price=price, 
+            image_url=image_url, 
+            stock=stock
+        )
+        # Add the new product to the database
+        db.add(new_product)
+        db.commit()
+        db.refresh(new_product)
+        
+        # Return success template
+        return templates.TemplateResponse("product_added.html", {"request": request, "product": new_product})
+    
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
 @router.get("/products", response_class=HTMLResponse)

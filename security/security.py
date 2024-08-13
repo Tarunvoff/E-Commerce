@@ -16,7 +16,19 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 security = HTTPBearer()
 
-def create_access_token(data: dict, expires_delta: timedelta = None):
+
+
+# def create_access_token(data: dict, db: Session, expires_delta: timedelta = None):
+#     to_encode = data.copy()
+#     if expires_delta:
+#         expire = datetime.now() + expires_delta
+#     else:
+#         expire = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+#     to_encode.update({"exp": expire})
+#     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+    # Store the token in the database
+def create_access_token(data: dict,db: Session, expires_delta: timedelta = None):
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now() + expires_delta
@@ -24,14 +36,35 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
         expire = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    token = Token(token=encoded_jwt, user_id=data["sub"])
+    db.add(token)
+    try:
+        db.commit()
+        db.refresh(token)  # Ensures that the token object is refreshed with the ID from the database
+    except Exception as e:
+        db.rollback()  # Rolls back the transaction in case of an error
+        raise HTTPException(status_code=500, detail=f"Token could not be stored: {str(e)}")
+    finally:
+        inserted_token = db.query(Token).filter(Token.token == encoded_jwt).first()
+        if not inserted_token:
+            raise HTTPException(status_code=500, detail="Token was not inserted into the database")
+
     return encoded_jwt
+
+
 
 def verify_token(credentials: HTTPAuthorizationCredentials = Security(security), db: Session = Depends(get_db)):
     try:
         payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
-        if username is None:
+        exp = payload.get("exp")
+        if username is None or exp is None:
             raise HTTPException(status_code=403, detail="Invalid token")
+
+        if datetime.now() > datetime.fromtimestamp(exp):
+            db.query(Token).filter(Token.token == credentials.credentials).delete()
+            db.commit()
+            raise HTTPException(status_code=403, detail="Token has expired")
         
         token = db.query(Token).filter(Token.token == credentials.credentials).first()
         if token is None:
