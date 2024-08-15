@@ -28,7 +28,7 @@ class User(DefaultColumn):
     is_active = Column(Boolean, nullable=False, default=True)
     mobno = Column(String, nullable=False)
     password = Column(String, nullable=False)
-    tokens = relationship("Token", back_populates="user")
+    # tokens = relationship("Token", back_populates="user")
 
 class Products(DefaultColumn):
     __tablename__ = "products"
@@ -43,12 +43,12 @@ class Products(DefaultColumn):
     image_url = Column(String, nullable=False)
     stock = Column(Integer, nullable=False)
 
-class Token(DefaultColumn):
-    __tablename__ = "tokens"
-    id = Column(Integer, primary_key=True, index=True)
-    token = Column(String, unique=True, index=True)
-    user_id = Column(Integer, ForeignKey("user.id"))
-    user = relationship("User", back_populates="tokens")
+# class Token(DefaultColumn):
+#     __tablename__ = "tokens"
+#     id = Column(Integer, primary_key=True, index=True)
+#     token = Column(String, unique=True, index=True)
+#     user_id = Column(Integer, ForeignKey("user.id"))
+#     user = relationship("User", back_populates="tokens")
 
 
 

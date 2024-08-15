@@ -16,7 +16,8 @@ from database.database import get_db
 from database.model import Products
 from security.security import verify_token
 from security.security import create_access_token
-from schemas.schemas import TokenSchema
+# from schemas.schemas import TokenSchema
+
 
 
 router = APIRouter(
@@ -78,7 +79,6 @@ async def create_user(
 async def login_form(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
-
 @router.post("/login", response_class=HTMLResponse)
 async def login(
     request: Request,
@@ -103,25 +103,23 @@ async def login(
             detail="Incorrect password",
         )
     
-    # Create an access token
-    access_token = create_access_token(data={"sub": user.id}, db=db)
-    # access_token = create_access_token(data={"sub": user.id},db=db)
+    # Create an access token (no need to store it in the database)
+    access_token = create_access_token(data={"sub": user.id})
     
-    # Optionally, you could set the token in a cookie or return it in the response
-    # Here, I am returning it as a JSON response
-    response = RedirectResponse(url="/api/home", status_code=status.HTTP_302_FOUND)
-    response.set_cookie(key="access_token", value=f"Bearer {access_token}", httponly=True)
-
+    # Return the token in the response
+    #return RedirectResponse(url="/api/home", status_code=status.HTTP_302_FOUND)
+    response = JSONResponse(content={"access_token": access_token})
     return response
 
 @router.get("/welcome", response_class=HTMLResponse)
 async def welcome(request: Request, username: str):
     return templates.TemplateResponse("welcome.html", {"request": request, "username": username})
 
-
-# ADD PRODUCT ROUTER
 @router.get("/add-product", response_class=HTMLResponse)
-async def create_product_form(request: Request):
+async def create_product_form(
+    request: Request,
+    user_id: int = Depends(verify_token)  # Authentication dependency
+):
     return templates.TemplateResponse("addproduct.html", {"request": request})
 
 
@@ -134,23 +132,20 @@ async def add_product(
     stock: int = Form(...),
     image_url: str = Form(...),
     db: Session = Depends(get_db),
-    user_id: int = Depends(verify_token)  # Get the user ID from the token
+    user_id: int = Depends(verify_token)  # Authentication dependency
 ):
     try:
-        # Create a new product instance
-        new_product = Products(
+        new_product = model.Products(
             name=name, 
             description=description, 
             price=price, 
             image_url=image_url, 
             stock=stock
         )
-        # Add the new product to the database
         db.add(new_product)
         db.commit()
         db.refresh(new_product)
         
-        # Return success template
         return templates.TemplateResponse("product_added.html", {"request": request, "product": new_product})
     
     except Exception as e:
@@ -159,37 +154,40 @@ async def add_product(
 
 
 @router.get("/products", response_class=HTMLResponse)
-def read_products(request: Request, db: Session = Depends(get_db)):
-    products = db.query(Products).all()
+def read_products(
+    request: Request,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(verify_token)  # Authentication dependency
+):
+    products = db.query(model.Products).all()
     return templates.TemplateResponse("product.html", {"request": request, "products": products})
 
 
 @router.get("/home", response_class=HTMLResponse)
-async def home(request: Request, db: Session = Depends(get_db)):
-    products = db.query(Products).all()  
-    return templates.TemplateResponse("home.html", {"request": request, "products": products})
+async def home(
+    request: Request,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(verify_token)  # Authentication dependency
+):
+    try:
+        products = db.query(model.Products).all()  
+        return templates.TemplateResponse("home.html", {"request": request, "products": products})
+    except Exception as e:
+        print(f"An error occurred: {e}")  # Debugging line
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
-# #update the features
-# @router.update("/update-product/{{id}}", response_class=HTMLResponse)
-# async def update_product_form(request: Request, id: int, db: Session = Depends(get_db)):
-#     product = db.query(Products).filter(Products.id == id).first()
-#     return templates.TemplateResponse("updateproduct.html", {"request": request, "product": product})
-
-#update
 @router.get("/update-product", response_class=HTMLResponse)
-async def update_product_form(request: Request, id: int, db: Session = Depends(get_db)):
-    # Check if ID is provided - This is technically redundant since `id` is a path parameter
-    if not id:
-        return JSONResponse(status_code=400, content={"detail": "Product ID is required"})
+async def update_product_form(
+    request: Request,
+    id: int,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(verify_token)  # Authentication dependency
+):
+    product = db.query(model.Products).filter(model.Products.id == id).first()
     
-    # Query the database for the product with the given ID
-    product = db.query(Products).filter(Products.id == id).first()
-    
-    # Return an error if the product is not found
     if not product:
         return JSONResponse(status_code=404, content={"detail": "Product not found"})
     
-    # Render the form with the product details
     return templates.TemplateResponse("updateproduct.html", {"request": request, "product": product})
 
 
@@ -202,12 +200,11 @@ async def update_product(
     price: float = Form(...),
     quantity: int = Form(...),
     image_url: str = Form(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user_id: int = Depends(verify_token)  # Authentication dependency
 ):
-    # Query the database for the product with the given ID
-    product = db.query(Products).filter(Products.id == id).first()
+    product = db.query(model.Products).filter(model.Products.id == id).first()
     
-    # If the product is found, update its details
     if product:
         product.name = name
         product.description = description
@@ -218,42 +215,190 @@ async def update_product(
         db.commit()
         db.refresh(product)
         
-        # Render the success template
         return templates.TemplateResponse("product_added.html", {"request": request, "product": product})
     
-    
-
     return JSONResponse(status_code=404, content={"detail": "Product not found"})
+
+
 @router.get("/delete-product", response_class=HTMLResponse)
-async def delete_product_form(request: Request, id: int, db: Session = Depends(get_db)):
-    if not id:
-        return JSONResponse(status_code=400, content={"detail": "Product ID is required"})
-    
-    
-    product = db.query(Products).filter(Products.id == id).first()
+async def delete_product_form(
+    request: Request,
+    id: int,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(verify_token)  # Authentication dependency
+):
+    product = db.query(model.Products).filter(model.Products.id == id).first()
     
     if not product:
         return JSONResponse(status_code=404, content={"detail": "Product not found"})
     
-    
     return templates.TemplateResponse("delproduct.html", {"request": request, "product": product})
-   
-    
- 
+
+
 @router.post("/delete-product")
-async def delete_product(id: int, db: Session = Depends(get_db)):
-    # Fetch the product from the database
-    product = db.query(Products).filter(Products.id == id).first()
+async def delete_product(
+    id: int,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(verify_token)  # Authentication dependency
+):
+    product = db.query(model.Products).filter(model.Products.id == id).first()
     
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     
-    # Delete the product
     db.delete(product)
     db.commit()
     
-    # Redirect to a success page or homepage
     return RedirectResponse(url="/api/home", status_code=302)
+
+
+
+
+
+
+
+
+
+
+#                         ---------------- Previous  CODE BEFORE AUTHENTICATION-------------------------                                           #
+
+
+# ADD PRODUCT ROUTER
+# @router.get("/add-product", response_class=HTMLResponse)
+# async def create_product_form(request: Request):
+#     return templates.TemplateResponse("addproduct.html", {"request": request})
+
+
+# @router.post("/add-product", response_class=HTMLResponse)
+# async def add_product(
+#     request: Request,
+#     name: str = Form(...),
+#     description: str = Form(...),
+#     price: float = Form(...),
+#     stock: int = Form(...),
+#     image_url: str = Form(...),
+#     db: Session = Depends(get_db),
+#     user_id: int = Depends(verify_token)  # Get the user ID from the token
+# ):
+#     try:
+#         # Create a new product instance
+#         new_product = Products(
+#             name=name, 
+#             description=description, 
+#             price=price, 
+#             image_url=image_url, 
+#             stock=stock
+#         )
+#         # Add the new product to the database
+#         db.add(new_product)
+#         db.commit()
+#         db.refresh(new_product)
+        
+#         # Return success template
+#         return templates.TemplateResponse("product_added.html", {"request": request, "product": new_product})
+    
+#     except Exception as e:
+#         db.rollback()
+#         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+
+
+# @router.get("/products", response_class=HTMLResponse)
+# def read_products(request: Request, db: Session = Depends(get_db)):
+#     products = db.query(Products).all()
+#     return templates.TemplateResponse("product.html", {"request": request, "products": products})
+
+
+# @router.get("/home", response_class=HTMLResponse)
+# async def home(request: Request, db: Session = Depends(get_db)):
+#     products = db.query(Products).all()  
+#     return templates.TemplateResponse("home.html", {"request": request, "products": products})
+
+# # #update the features
+# # @router.update("/update-product/{{id}}", response_class=HTMLResponse)
+# # async def update_product_form(request: Request, id: int, db: Session = Depends(get_db)):
+# #     product = db.query(Products).filter(Products.id == id).first()
+# #     return templates.TemplateResponse("updateproduct.html", {"request": request, "product": product})
+
+# #update
+# @router.get("/update-product", response_class=HTMLResponse)
+# async def update_product_form(request: Request, id: int, db: Session = Depends(get_db)):
+#     # Check if ID is provided - This is technically redundant since `id` is a path parameter
+#     if not id:
+#         return JSONResponse(status_code=400, content={"detail": "Product ID is required"})
+    
+#     # Query the database for the product with the given ID
+#     product = db.query(Products).filter(Products.id == id).first()
+    
+#     # Return an error if the product is not found
+#     if not product:
+#         return JSONResponse(status_code=404, content={"detail": "Product not found"})
+    
+#     # Render the form with the product details
+#     return templates.TemplateResponse("updateproduct.html", {"request": request, "product": product})
+
+
+# @router.post("/update-product", response_class=HTMLResponse)
+# async def update_product(
+#     request: Request,
+#     id: int = Form(...),
+#     name: str = Form(...),
+#     description: str = Form(...),
+#     price: float = Form(...),
+#     quantity: int = Form(...),
+#     image_url: str = Form(...),
+#     db: Session = Depends(get_db)
+# ):
+#     # Query the database for the product with the given ID
+#     product = db.query(Products).filter(Products.id == id).first()
+    
+#     # If the product is found, update its details
+#     if product:
+#         product.name = name
+#         product.description = description
+#         product.price = price
+#         product.stock = quantity
+#         product.image_url = image_url
+
+#         db.commit()
+#         db.refresh(product)
+        
+#         # Render the success template
+#         return templates.TemplateResponse("product_added.html", {"request": request, "product": product})
+    
+    
+
+#     return JSONResponse(status_code=404, content={"detail": "Product not found"})
+
+# @router.get("/delete-product", response_class=HTMLResponse)
+# async def delete_product_form(request: Request, id: int, db: Session = Depends(get_db)):
+#     if not id:
+#         return JSONResponse(status_code=400, content={"detail": "Product ID is required"})
+    
+    
+#     product = db.query(Products).filter(Products.id == id).first()
+    
+#     if not product:
+#         return JSONResponse(status_code=404, content={"detail": "Product not found"})
+    
+    
+#     return templates.TemplateResponse("delproduct.html", {"request": request, "product": product})
+   
+    
+ 
+# @router.post("/delete-product")
+# async def delete_product(id: int, db: Session = Depends(get_db)):
+#     # Fetch the product from the database
+#     product = db.query(Products).filter(Products.id == id).first()
+    
+#     if not product:
+#         raise HTTPException(status_code=404, detail="Product not found")
+    
+#     # Delete the product
+#     db.delete(product)
+#     db.commit()
+    
+#     # Redirect to a success page or homepage
+#     return RedirectResponse(url="/api/home", status_code=302)
 
 
 
