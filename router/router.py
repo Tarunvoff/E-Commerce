@@ -9,6 +9,7 @@ from fastapi.templating import Jinja2Templates
 from typing import Optional
 
 
+
 from schemas import schemas
 from utility import utility
 from database import model
@@ -17,6 +18,7 @@ from database.model import Products
 from security.security import verify_token
 from security.security import create_access_token
 # from schemas.schemas import TokenSchema
+from datetime import timedelta
 
 
 
@@ -72,7 +74,7 @@ async def create_user(
     
     #return templates.TemplateResponse("user_created.html", {"request": request, "username": username})
 
-
+exp=timedelta(minutes=30)
 #LOGIN 
 # 
 @router.get("/login", response_class=HTMLResponse)
@@ -104,7 +106,7 @@ async def login(
         )
     
     # Create an access token (no need to store it in the database)
-    access_token = create_access_token(data={"sub": user.id})
+    access_token = create_access_token(data={"sub": str(user.id)},expires_delta=exp)
     
     # Return the token in the response
     #return RedirectResponse(url="/api/home", status_code=status.HTTP_302_FOUND)

@@ -34,11 +34,13 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-class TokenData(BaseModel):
-    user_id: int
+# class TokenData(BaseModel):
+#     user_id: int
+   
 
 def verify_token(authorization: str = Depends(oauth2_scheme)) -> int:
     try:
+        print(authorization)
         if not authorization:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -46,15 +48,14 @@ def verify_token(authorization: str = Depends(oauth2_scheme)) -> int:
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        if not authorization.startswith("Bearer "):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid authentication scheme",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+        # if not authorization.startswith("Bearer "):
+        #     raise HTTPException(
+        #         status_code=status.HTTP_401_UNAUTHORIZED,
+        #         detail="Invalid authentication scheme",
+        #         headers={"WWW-Authenticate": "Bearer"},
+        #     )
 
-        token = authorization.split(" ")[1]
-
+        token = authorization
         if not token:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -64,8 +65,10 @@ def verify_token(authorization: str = Depends(oauth2_scheme)) -> int:
 
         # Decode and verify the token
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        token_data = TokenData(**payload)
-        return token_data.user_id 
+        # token_data = TokenData(**payloa
+        user_id=payload.get("sub")
+        return int(user_id)
+        # return token_data.user_id 
 
     except jwt.ExpiredSignatureError:
         raise HTTPException(
@@ -73,13 +76,15 @@ def verify_token(authorization: str = Depends(oauth2_scheme)) -> int:
             detail="Token has expired",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    except jwt.JWTClaimsError:
+    except jwt.JWTClaimsError as e:
+        print(e)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token claims",
             headers={"WWW-Authenticate": "Bearer"},
         )
     except jwt.JWTError:
+        print(e)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
