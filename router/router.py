@@ -151,6 +151,7 @@ async def add_product(
         return templates.TemplateResponse("product_added.html", {"request": request, "product": new_product})
     
     except Exception as e:
+        print(e)
         db.rollback()
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
@@ -172,6 +173,7 @@ async def home(
     user_id: int = Depends(verify_token)  # Authentication dependency
 ):
     try:
+        print(user_id)
         products = db.query(model.Products).all()  
         return templates.TemplateResponse("home.html", {"request": request, "products": products})
     except Exception as e:

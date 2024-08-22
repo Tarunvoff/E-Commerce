@@ -4,6 +4,7 @@ from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
+from fastapi.responses import JSONResponse
 from jwt import PyJWTError
 from typing import Optional
 from fastapi import Depends, HTTPException, status
@@ -37,7 +38,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 # class TokenData(BaseModel):
 #     user_id: int
    
-
+exp=30
 def verify_token(authorization: str = Depends(oauth2_scheme)) -> int:
     try:
         print(authorization)
@@ -62,15 +63,24 @@ def verify_token(authorization: str = Depends(oauth2_scheme)) -> int:
                 detail="Token is empty",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-
+        #token regeneration
+        
         # Decode and verify the token
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         # token_data = TokenData(**payloa
         user_id=payload.get("sub")
+
+        # if datetime.fromtimestamp(exp) - datetime.now() < timedelta(minutes=5):
+        #     new_token = create_access_token(data={"sub": user_id})
+        #     response = JSONResponse(content={"access_token": new_token})
+        #     response.headers["X-New-Token"] = new_token
+        #     return response
+
         return int(user_id)
         # return token_data.user_id 
 
-    except jwt.ExpiredSignatureError:
+    except jwt.ExpiredSignatureError as e:
+        print(e)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token has expired",
@@ -83,7 +93,7 @@ def verify_token(authorization: str = Depends(oauth2_scheme)) -> int:
             detail="Invalid token claims",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    except jwt.JWTError:
+    except jwt.JWTError as e:
         print(e)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
