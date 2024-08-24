@@ -16,7 +16,7 @@ product_router = APIRouter(
     prefix="/products"
 )
 
-@product_router.post("/add", response_model=schemas.Product)
+@product_router.post("/add", response_model=schemas.ProductSchema)
 async def add_product(
     product: schemas.ProductCreate,  # Expecting JSON payload
     db: Session = Depends(get_db),
@@ -39,7 +39,7 @@ async def add_product(
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
-@product_router.get("/", response_model=list[schemas.Product])
+@product_router.get("/", response_model=list[schemas.ProductSchema])
 async def read_products(
     db: Session = Depends(get_db),
     user_id: int = Depends(verify_token)
@@ -51,7 +51,7 @@ async def read_products(
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
-@product_router.get("/{id}", response_model=schemas.Product)
+@product_router.get("/{id}", response_model=schemas.ProductSchema)
 async def read_product(
     id: int,
     db: Session = Depends(get_db),
@@ -63,7 +63,7 @@ async def read_product(
     return product
 
 
-@product_router.put("/{id}", response_model=schemas.Product)
+@product_router.put("/{id}", response_model=schemas.ProductSchema)
 async def update_product(
     id: int,
     product: schemas.ProductUpdate,  # Expecting JSON payload

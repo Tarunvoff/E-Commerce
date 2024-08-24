@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from typing import List
-from schemas import UserSchema  # Assuming your schema is in the `schemas` module
+from schemas.schemas import UserSchema  # Assuming your schema is in the `schemas` module
 from database import model
 from database.database import get_db
 from utility import utility
