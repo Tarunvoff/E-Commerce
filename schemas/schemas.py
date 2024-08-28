@@ -14,6 +14,13 @@ class UserSchema(BaseModel):
     class Config:
         from_attributes = True
 
+class UserLoginSchema(BaseModel):
+    username: str
+    password: str
+
+    class Config:
+        from_attributes = True
+
 class ProductCreate(BaseModel):
     name: str = Field(..., max_length=100)
     description: Optional[str] = Field(None, max_length=300)
@@ -60,6 +67,7 @@ class CartCreate(BaseModel):
 class OrderItemSchema(BaseModel):
     product_id: int
     quantity: int
+
     price: float
 
 class OrderCreate(BaseModel):
@@ -69,7 +77,6 @@ class OrderSchema(BaseModel):
     id: int
     user_id: int
     total_price: float
-    status: str
     created_at: datetime
     items: List[OrderItemSchema]
 

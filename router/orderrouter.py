@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from database.model import Order, OrderItem, Products, Cart
 from schemas.schemas import OrderSchema, OrderCreate
 from database.database import get_db
-from security.security import verify_token
+from auth.auth import verify_token
 from typing import List
 
 order_router = APIRouter(
@@ -58,7 +58,13 @@ async def get_order(id: int, db: Session = Depends(get_db), user_id: int = Depen
     
     return order
 
-@order_router.get("/all", response_model=List[OrderSchema])
-async def get_all_orders(db: Session = Depends(get_db), user_id: int = Depends(verify_token)):
-    orders = db.query(Order).filter(Order.user_id == user_id).all()
-    return orders
+# @order_router.get("/{id}", response_model=List[OrderSchema])
+# async def get_all_orders(id:int,db: Session = Depends(get_db), user_id: int = Depends(verify_token)):
+#     # Query the database for orders associated with the user
+#     try:
+#         # Fetch all orders from the database
+#         orders = db.query(Order).all()
+#         return orders
+#     except Exception as e:
+#         # Handle any exceptions that might occur
+#         raise HTTPException(status_code=500, detail=str(e))

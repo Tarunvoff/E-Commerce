@@ -5,7 +5,7 @@ from database.database import get_db
 from typing import List
 from schemas.schemas import CartItem, CartCreate
 from database.database import get_db
-from security.security import verify_token
+from auth.auth import verify_token
 
 cart_router = APIRouter(
     tags=["Cart"],

@@ -11,13 +11,14 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from database import model
 from database.database import get_db
+from configuration import config
 from pydantic import BaseModel
 # from database.model import Token
 # from schemas.schemas import TokenSchema
 # Secret key to encode the JWT tokens
-SECRET_KEY = "your_secret_key"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+SECRET_KEY = config.app_config['auth']['SECRET_KEY']
+ALGORITHM = config.app_config['auth']['algorithm']
+ACCESS_TOKEN_EXPIRE_MINUTES = config.app_config['auth']['ACCESS_TOKEN_EXPIRE_MINUTES']
 
 security = HTTPBearer()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")

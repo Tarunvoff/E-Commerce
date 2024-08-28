@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from schemas import schemas
 from database import model
 from database.database import get_db
-from security.security import verify_token
+from auth.auth import verify_token
 
 # Router for Product Management
 product_router = APIRouter(

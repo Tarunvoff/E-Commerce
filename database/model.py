@@ -56,7 +56,7 @@ class Order(DefaultColumn):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
     total_price = Column(Float, nullable=False)
-    status = Column(String, default="pending")
+    # status = Column(String, default="pending")
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="orders")

@@ -3,11 +3,13 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from typing import List
 from schemas.schemas import UserSchema  # Assuming your schema is in the `schemas` module
+from schemas.schemas import UserLoginSchema
 from database import model
+
 from database.database import get_db
 from utility import utility
-from security.security import verify_token
-from security.security import create_access_token
+from auth.auth import verify_token
+from auth.auth import create_access_token
 
 user_router = APIRouter(
     tags=["User"],
@@ -53,31 +55,56 @@ async def create_user(user: UserSchema, db: Session = Depends(get_db)):
 #POST Login - Accept UserSchema and return JSON with access token
 @user_router.post("/login", response_class=JSONResponse)
 async def login(
-    user_data: UserSchema,
+    user_data: UserLoginSchema,  # Now using UserLoginSchema
     db: Session = Depends(get_db)
 ):
-    # Retrieve user from the database
+  
     user = db.query(model.User).filter(model.User.username == user_data.username).first()
 
-    # Check if the user exists
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username",
         )
 
-    # Verify the password
+   
     if not utility.verify_password(user_data.password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect password",
         )
     
-    # Create an access token
     access_token = create_access_token(data={"sub": str(user.id)})
-
-    # Return the access token in a JSON response
     return JSONResponse(content={"access_token": access_token})
+
+
+# @user_router.post("/login", response_class=JSONResponse)
+# async def login(
+#     user_data: UserSchema,
+#     db: Session = Depends(get_db)
+# ):
+#     # Retrieve user from the database
+#     user = db.query(model.User).filter(model.User.username == user_data.username).first()
+
+#     # Check if the user exists
+#     if not user:
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="Incorrect username",
+#         )
+
+#     # Verify the password
+#     if not utility.verify_password(user_data.password, user.password):
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="Incorrect password",
+#         )
+    
+#     # Create an access token
+#     access_token = create_access_token(data={"sub": str(user.id)})
+
+#     # Return the access token in a JSON response
+#     return JSONResponse(content={"access_token": access_token})
 
 # Read Single User - Return JSON
 @user_router.get("/read/{user_id}", response_model=UserSchema)
@@ -86,14 +113,15 @@ async def read_user(user_id: int, db: Session = Depends(get_db)):
     
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+     
     
-    return JSONResponse(content=user.dict())
+    return user
 
 # Read All Users - Return JSON
 @user_router.get("/read-all", response_model=List[UserSchema])
 async def read_all_users(db: Session = Depends(get_db)):
     users = db.query(model.User).all()
-    return JSONResponse(content=[user.dict() for user in users])
+    return users
 
 # Update User - Return JSON
 @user_router.put("/update/{user_id}", response_model=UserSchema)
@@ -119,7 +147,7 @@ async def update_user(user_id: int, updated_user: UserSchema, db: Session = Depe
             detail=f"An error occurred: {str(e)}"
         )
     
-    return JSONResponse(content=user.dict())
+    return user
 
 # Delete User - Return JSON
 @user_router.delete("/delete/{user_id}")
@@ -139,4 +167,4 @@ async def delete_user(user_id: int, db: Session = Depends(get_db)):
             detail=f"An error occurred: {str(e)}"
         )
     
-    return JSONResponse(content={"detail": "User deleted successfully"})
+    return "user is deleted"
