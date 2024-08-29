@@ -4,10 +4,10 @@ from fastapi.staticfiles import StaticFiles
 from database import model
 from database.database import engine, get_db
 #from router.router import router
-from router.productrouter import product_router
-from router.userrouter import user_router
-from router.orderrouter import order_router
-from router.cartrouter import cart_router
+from router.product import product_router
+from router.user import user_router
+from router.order import order_router
+from router.cart import cart_router
 
 app = FastAPI()
 

@@ -1,8 +1,6 @@
 from pydantic import BaseModel, Field
-from typing import List,Optional
+from typing import List, Optional
 from datetime import datetime
-
-from pydantic import BaseModel
 
 class UserSchema(BaseModel):
     username: str
@@ -14,12 +12,14 @@ class UserSchema(BaseModel):
     class Config:
         from_attributes = True
 
+
 class UserLoginSchema(BaseModel):
     username: str
     password: str
 
     class Config:
         from_attributes = True
+
 
 class ProductCreate(BaseModel):
     name: str = Field(..., max_length=100)
@@ -31,6 +31,7 @@ class ProductCreate(BaseModel):
     class Config:
         from_attributes = True
 
+
 class ProductSchema(BaseModel):
     name: str
     description: str
@@ -40,6 +41,7 @@ class ProductSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = Field(None, max_length=100)
@@ -51,6 +53,7 @@ class ProductUpdate(BaseModel):
     class Config:
         from_attributes = True
 
+
 class CartItem(BaseModel):
     id: int
     product_id: int
@@ -60,18 +63,21 @@ class CartItem(BaseModel):
     class Config:
         from_attributes = True
 
+
 class CartCreate(BaseModel):
     product_id: int
     quantity: int
 
+
 class OrderItemSchema(BaseModel):
     product_id: int
     quantity: int
-
     price: float
 
+
 class OrderCreate(BaseModel):
-    items: List[OrderItemSchema]
+    item: OrderItemSchema
+
 
 class OrderSchema(BaseModel):
     id: int
@@ -82,20 +88,3 @@ class OrderSchema(BaseModel):
 
     class Config:
         from_attributes = True
-
-
-# ------------------------------------------------------>previous<-------------------------------------------------------------------------
-
-        
-# class TokenSchema(BaseModel):
-#     token: str
-#     user_id: int
-
-#     class Config:
-#         from_attributes = True
-
-
-
-
-
-

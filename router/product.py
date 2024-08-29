@@ -1,8 +1,7 @@
 from fastapi import (
-    APIRouter, status, Depends,
-    HTTPException
+    APIRouter, HTTPException, status, Depends
 )
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from schemas import schemas
@@ -36,8 +35,10 @@ async def add_product(
         return new_product
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
-
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred: {str(e)}"
+        )
 
 @product_router.get("/", response_model=list[schemas.ProductSchema])
 async def read_products(
@@ -48,8 +49,10 @@ async def read_products(
         products = db.query(model.Products).all()
         return products
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
-
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred: {str(e)}"
+        )
 
 @product_router.get("/{id}", response_model=schemas.ProductSchema)
 async def read_product(
@@ -57,11 +60,19 @@ async def read_product(
     db: Session = Depends(get_db),
     user_id: int = Depends(verify_token)
 ):
-    product = db.query(model.Products).filter(model.Products.id == id).first()
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-    return product
-
+    try:
+        product = db.query(model.Products).filter(model.Products.id == id).first()
+        if not product:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Product not found"
+            )
+        return product
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred: {str(e)}"
+        )
 
 @product_router.put("/{id}", response_model=schemas.ProductSchema)
 async def update_product(
@@ -70,12 +81,15 @@ async def update_product(
     db: Session = Depends(get_db),
     user_id: int = Depends(verify_token)
 ):
-    existing_product = db.query(model.Products).filter(model.Products.id == id).first()
-    
-    if not existing_product:
-        raise HTTPException(status_code=404, detail="Product not found")
-    
     try:
+        existing_product = db.query(model.Products).filter(model.Products.id == id).first()
+        
+        if not existing_product:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Product not found"
+            )
+
         existing_product.name = product.name
         existing_product.description = product.description
         existing_product.price = product.price
@@ -85,10 +99,13 @@ async def update_product(
         db.commit()
         db.refresh(existing_product)
         return existing_product
+
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
-
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred: {str(e)}"
+        )
 
 @product_router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_product(
@@ -96,16 +113,22 @@ async def delete_product(
     db: Session = Depends(get_db),
     user_id: int = Depends(verify_token)
 ):
-    product = db.query(model.Products).filter(model.Products.id == id).first()
-    
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
-    
     try:
+        product = db.query(model.Products).filter(model.Products.id == id).first()
+        
+        if not product:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Product not found"
+            )
+
         db.delete(product)
         db.commit()
         return JSONResponse(status_code=status.HTTP_204_NO_CONTENT)
+        
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
-
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An error occurred: {str(e)}"
+        )
