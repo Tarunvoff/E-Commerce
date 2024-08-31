@@ -38,76 +38,64 @@ exp = 30
 
 def verify_token(authorization: str = Depends(oauth2_scheme)) -> int:
     try:
-        print(authorization)
+        # Log the incoming authorization header
+        print(f"Authorization Header Received: {authorization}")
 
-        if not isinstance(authorization, str):
-            raise ValueError("Token is not a string.")
-        
-        token_type, token = authorization.split(" ")
-        
+        # if not isinstance(authorization, str):
+            # raise ValueError("Token is not a string.")
+
+        # Attempt to split the header into type and token
+        try:
+            token_type, token = authorization.split(" ", 1)  # Avoiding split error by specifying maxsplit
+            print(f"Token Type: {token_type}, Token: {token}")
+        except ValueError as e:
+            print(f"Error splitting token: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Malformed authorization header. Expected format: 'Bearer <token>'",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
         if token_type.lower() != "bearer":
-            raise ValueError("Invalid token type.")
-
-        if not authorization:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Authorization header missing",
+                detail="Invalid token type. Expected 'Bearer'.",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        token = authorization
-        if not token:
+        # Decode the token and verify its payload
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            print(f"Decoded Payload: {payload}")
+        except jwt.ExpiredSignatureError as e:
+            print(e)
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token is empty",
+                detail="Token has expired",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        except jwt.JWTClaimsError as e:
+            print(f"JWT Claims Error: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token claims",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        except jwt.JWTError as e:
+            print(f"JWT Error: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        # Decode and verify the token
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-
-        
         user_id = payload.get("sub")
         if user_id is None:
             raise ValueError("User ID not found in token.")
 
+        print(f"Verified User ID: {user_id}")
         return int(user_id)
 
-    except jwt.ExpiredSignatureError as e:
-        print(e)
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    except jwt.JWTClaimsError as e:
-        print(e)
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token claims",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    except jwt.JWTError as e:
-        print(e)
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    except IndexError as e:
-        print(f"Error in token verification (IndexError): {e}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token is malformed",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    except PyJWTError as e:
-        print(f"Error in token verification (PyJWTError): {e}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
     except Exception as e:
         print(f"Error in token verification: {e}")
         raise HTTPException(

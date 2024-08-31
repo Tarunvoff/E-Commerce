@@ -13,36 +13,38 @@
     </div>
 
     <script>
-        async function checkAccessToken() {
-            const authToken = localStorage.getItem('access_token');
+       async function checkAccessToken() {
+    const authToken = localStorage.getItem('access_token');
 
-            if (!authToken) {
-                // Redirect to login page if no token
-                window.location.href = '/login';
-                return;
+    if (!authToken) {
+        // Redirect to login page if no token
+        window.location.href = '/api/user/login';
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/user/protected-endpoint', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                // Ensure 'Bearer' is added before the token
+                'Authorization': 'Bearer ${authToken}'
             }
+        });
 
-            try {
-                const response = await fetch('/api/user/protected-endpoint', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`
-                    }
-                });
-
-                if (response.ok) {
-                    // Redirect to home page if token is valid
-                    window.location.href = '/home';
-                } else {
-                    // Redirect to login page if token is invalid
-                    window.location.href = '/login';
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                // Redirect to login page on error
-                window.location.href = '/login';
-            }
+        if (response.ok) {
+            // Redirect to home page if token is valid
+            window.location.href = '/api/user/home';
+        } else {
+            // Redirect to login page if token is invalid
+            window.location.href = '/api/user/login';
         }
+    } catch (error) {
+        console.error('Error:', error);
+        // Redirect to login page on error
+        window.location.href = '/api/user/login';
+    }
+}
 
         // Check the access token when the page loads
         checkAccessToken();

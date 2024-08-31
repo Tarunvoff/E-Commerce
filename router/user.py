@@ -80,21 +80,26 @@ async def login(user_data: UserLoginSchema, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect password")
 
     access_token = create_access_token(data={"sub": str(user.id)})
-    return JSONResponse(content={"access_token": access_token})
-
+    # return JSONResponse(content={"access_token": access_token})
+    return RedirectResponse(url="/api/user/home",status_code=status.HTTP_302_FOUND)
 @user_router.get("/protected-endpoint", response_class=HTMLResponse)
-async def protected_endpoint(request: Request, authorization: str = Depends(verify_token), db: Session = Depends(get_db)):
-    user_id = verify_token(authorization)
+async def protected_endpoint(
+    request: Request, 
+    user_id: int = Depends(verify_token),  # Directly get user_id from the dependency
+    db: Session = Depends(get_db)
+):
+    # Use the user_id directly returned from verify_token
     user = db.query(model.User).filter(model.User.id == user_id).first()
 
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
+    # Render the protected page with the user information
     return templates.TemplateResponse("protected.html", {"request": request, "user": user})
 
 @user_router.get("/home", response_class=HTMLResponse)
 async def home_page(request: Request, db: Session = Depends(get_db)):
-    products = db.query(model.Product).all()
+    products = db.query(model.Products).all()
     return templates.TemplateResponse("home.html", {"request": request, "products": products})
 
 

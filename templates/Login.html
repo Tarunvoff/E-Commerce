@@ -39,7 +39,7 @@
 
         async function loginUser(event) {
             event.preventDefault();
-            
+
             const username = document.getElementById("username").value;
             const password = document.getElementById("password").value;
 
@@ -60,11 +60,121 @@
                     // Store access token in localStorage
                     localStorage.setItem('access_token', data.access_token);
 
-                    // After successful login, check access token and redirect accordingly
-                    checkAccessToken();
+                    // Redirect to the home page
+                    window.location.href = '/api/user/home';
                 }
             } catch (error) {
                 console.error('Error:', error);
+                document.getElementById("error-message").textContent = "An error occurred during login!";
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="/static/loginstyles.css">
+</head>
+<body>
+    <div class="form-container">
+        <h2>Login</h2>
+        <form id="login-form" onsubmit="return loginUser(event)">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            
+            <label for="password">Password:</label>
+            <div class="password-container">
+                <input type="password" id="password" name="password" required>
+                <button type="button" id="toggle-password" onclick="togglePasswordVisibility()">👁️</button>
+            </div>
+            
+            <button type="submit">Login</button>
+            <small id="error-message" class="error-message"></small>
+        </form>
+    </div>
+
+    <script>
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById("password");
+            const toggleBtn = document.getElementById("toggle-password");
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                toggleBtn.textContent = "🙈";
+            } else {
+                passwordInput.type = "password";
+                toggleBtn.textContent = "👁️";
+            }
+        }
+
+        async function loginUser(event) {
+            event.preventDefault();
+
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            try {
+                const response = await fetch('/api/user/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    document.getElementById("error-message").textContent = data.detail || "Login failed!";
+                } else {
+                    // Store access token in localStorage
+                    localStorage.setItem('access_token', data.access_token);
+
+                    // Redirect to the home page
+                    window.location.href = '/api/user/home';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById("error-message").textContent = "An error occurred during login!";
             }
         }
 
@@ -90,4 +200,4 @@
 
     </script>
 </body>
-</html>
+</html> -->

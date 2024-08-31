@@ -34,41 +34,41 @@
             console.log(`Product ${productId} added to cart`);
             // Implement cart functionality here
         }
-        async function checkAccessToken() {
-            const authToken = localStorage.getItem('access_token');
+        // async function checkAccessToken() {
+        //     const authToken = localStorage.getItem('access_token');
 
-            if (!authToken) {
-                // Redirect to login page if no token
-                window.location.href = '/api/user/login';
-                return;
-            }
+        //     if (!authToken) {
+        //         // Redirect to login page if no token
+        //         window.location.href = '/api/user/login';
+        //         return;
+        //     }
 
-            try {
-                const response = await fetch('/api/user/protected-endpoint', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`
-                    }
-                });
+        //     try {
+        //         const response = await fetch('/api/user/protected-endpoint', {
+        //             method: 'GET',
+        //             headers: {
+        //                 'Authorization': `Bearer ${authToken}`
+        //             }
+        //         });
 
-                if (response.ok) {
-                    // Redirect to home page if token is valid
-                    window.location.href = '/home';
-                } else {
-                    // Redirect to login page if token is invalid
-                    window.location.href = '/api/user/login';
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                // Redirect to login page on error
-                window.location.href = '/api/user/login';
-            }
-        }
+        //         if (response.ok) {
+        //             // Redirect to home page if token is valid
+        //             window.location.href = '/home';
+        //         } else {
+        //             // Redirect to login page if token is invalid
+        //             window.location.href = '/api/user/login';
+        //         }
+        //     } catch (error) {
+        //         console.error('Error:', error);
+        //         // Redirect to login page on error
+        //         window.location.href = '/api/user/login';
+        //     }
+        // }
 
-        // Optional: Automatically check token when the page loads to auto-login users if they have a valid token
-        window.onload = function() {
-            checkAccessToken();
-        };
+        // // Optional: Automatically check token when the page loads to auto-login users if they have a valid token
+        // window.onload = function() {
+        //     checkAccessToken();
+        // };
     </script>
 </body>
 </html>
