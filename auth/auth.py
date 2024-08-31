@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from jwt import PyJWTError
 
 from database import model
-from database.database import get_db
+from database import database
 from configuration import config
 
 # Secret key to encode the JWT tokens
@@ -39,6 +39,15 @@ exp = 30
 def verify_token(authorization: str = Depends(oauth2_scheme)) -> int:
     try:
         print(authorization)
+
+        if not isinstance(authorization, str):
+            raise ValueError("Token is not a string.")
+        
+        token_type, token = authorization.split(" ")
+        
+        if token_type.lower() != "bearer":
+            raise ValueError("Invalid token type.")
+
         if not authorization:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -56,7 +65,11 @@ def verify_token(authorization: str = Depends(oauth2_scheme)) -> int:
 
         # Decode and verify the token
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
+        
         user_id = payload.get("sub")
+        if user_id is None:
+            raise ValueError("User ID not found in token.")
 
         return int(user_id)
 
@@ -101,3 +114,23 @@ def verify_token(authorization: str = Depends(oauth2_scheme)) -> int:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal Server Error",
         )
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(database.get_db)) -> model.User:
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    user = db.query(model.User).filter(model.User.id == user_id).first()
+    if user is None:
+        raise credentials_exception
+    return user
+
+

@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, Depends, status
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi import APIRouter, HTTPException, Depends, status,Request, Form
+from fastapi.responses import JSONResponse, RedirectResponse,HTMLResponse
 from sqlalchemy.orm import Session
+from fastapi.templating import Jinja2Templates
 from typing import List
 
 from schemas.schemas import UserSchema, UserLoginSchema
@@ -8,21 +9,32 @@ from database import model
 from database.database import get_db
 from utility import utility
 from auth.auth import verify_token, create_access_token
+from auth.auth import get_current_user
+
 
 user_router = APIRouter(
     tags=["User"],
     prefix="/api/user"
 )
+templates = Jinja2Templates(directory="templates")
 
 # Create User - Redirect to login on success
-@user_router.post("/create", response_class=RedirectResponse)
+@user_router.get("/create-user", response_class=HTMLResponse)
+async def create_user_page(request: Request):
+    return templates.TemplateResponse("createuser.html", {"request": request})
+
+@user_router.post("/create-user", response_class=RedirectResponse)
 async def create_user(
-    user: UserSchema,
+    username: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    mobno: str = Form(...),
+    is_active: bool = Form(True),
     db: Session = Depends(get_db)
 ):
     existing_user = db.query(model.User).filter(
-        (model.User.username == user.username) |
-        (model.User.email == user.email)
+        (model.User.username == username) |
+        (model.User.email == email)
     ).first()
 
     if existing_user:
@@ -31,13 +43,13 @@ async def create_user(
             detail="Username or email already registered"
         )
 
-    hashed_password = utility.get_password_hashed(user.password)
+    hashed_password = utility.get_password_hashed(password)
     new_user = model.User(
-        username=user.username,
-        email=user.email,
+        username=username,
+        email=email,
         password=hashed_password,
-        is_active=user.is_active,
-        mobno=user.mobno
+        is_active=is_active,
+        mobno=mobno
     )
     
     try:
@@ -50,31 +62,41 @@ async def create_user(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred: {str(e)}"
         )
+    return 'added'
+   
 
-    return RedirectResponse(url="/api/login", status_code=status.HTTP_302_FOUND)
+@user_router.get("/login", response_class=HTMLResponse)
+async def get_login_form(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
 
-# POST Login - Accept UserLoginSchema and return JSON with access token
-@user_router.post("/login", response_class=JSONResponse)
-async def login(
-    user_data: UserLoginSchema,
-    db: Session = Depends(get_db)
-):
+@user_router.post("/login")
+async def login(user_data: UserLoginSchema, db: Session = Depends(get_db)):
     user = db.query(model.User).filter(model.User.username == user_data.username).first()
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username",
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username")
 
     if not utility.verify_password(user_data.password, user.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect password",
-        )
-    
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect password")
+
     access_token = create_access_token(data={"sub": str(user.id)})
     return JSONResponse(content={"access_token": access_token})
+
+@user_router.get("/protected-endpoint", response_class=HTMLResponse)
+async def protected_endpoint(request: Request, authorization: str = Depends(verify_token), db: Session = Depends(get_db)):
+    user_id = verify_token(authorization)
+    user = db.query(model.User).filter(model.User.id == user_id).first()
+
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+
+    return templates.TemplateResponse("protected.html", {"request": request, "user": user})
+
+@user_router.get("/home", response_class=HTMLResponse)
+async def home_page(request: Request, db: Session = Depends(get_db)):
+    products = db.query(model.Product).all()
+    return templates.TemplateResponse("home.html", {"request": request, "products": products})
+
 
 # Read Single User - Return JSON
 @user_router.get("/read", response_model=UserSchema)

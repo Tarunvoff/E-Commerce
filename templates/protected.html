@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protected Page</title>
+    <link rel="stylesheet" href="/static/protectedstyles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome!</h1>
+        <p>You are being redirected to the home page...</p>
+    </div>
+
+    <script>
+        async function checkAccessToken() {
+            const authToken = localStorage.getItem('access_token');
+
+            if (!authToken) {
+                // Redirect to login page if no token
+                window.location.href = '/login';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/user/protected-endpoint', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    // Redirect to home page if token is valid
+                    window.location.href = '/home';
+                } else {
+                    // Redirect to login page if token is invalid
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                // Redirect to login page on error
+                window.location.href = '/login';
+            }
+        }
+
+        // Check the access token when the page loads
+        checkAccessToken();
+    </script>
+</body>
+</html>
