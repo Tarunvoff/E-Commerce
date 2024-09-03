@@ -63,10 +63,10 @@ class CartItem(BaseModel):
     class Config:
         from_attributes = True
 
-
 class CartCreate(BaseModel):
     product_id: int
-    quantity: int
+    quantity: int = Field(gt=0, description="Quantity must be greater than zero")
+    is_disabled: bool = Field(default=False)
 
 
 class OrderItemSchema(BaseModel):

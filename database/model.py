@@ -64,15 +64,15 @@ class Order(DefaultColumn):
     user = relationship("User", back_populates="orders")
     items = relationship("OrderItem", back_populates="order")
 
-
-class Cart(DefaultColumn):
-    __tablename__ = "carts"
-
+class Cart(Base):
+    __tablename__ = 'cart'
+    
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
-    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
-    quantity = Column(Integer, nullable=False, default=1)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    product_id = Column(Integer, ForeignKey('products.id'))
+    quantity = Column(Integer, nullable=False)
+    is_disabled = Column(Boolean, nullable=False, default=False)  
+    created_at = Column(DateTime, default=datetime.now)
 
     product = relationship("Products", back_populates="carts")
     user = relationship("User", back_populates="carts")

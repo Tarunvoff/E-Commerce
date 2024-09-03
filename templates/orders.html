@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Orders</title>
+    <link rel="stylesheet" href="/static/orderstyles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Your Orders</h1>
+        <div id="order-list" class="product-list">
+            {% for order in orders %}
+                <div class="order-card">
+                    <h2 class="order-id">Order ID: {{ order.id }}</h2>
+                    <p class="order-date">Date: {{ order.created_at }}</p>
+                    <div class="order-items">
+                        {% for item in order.items %}
+                            <div class="order-item">
+                                <img src="{{ item.product.image_url }}" alt="{{ item.product.name }}" class="product-image">
+                                <div class="order-info">
+                                    <h3 class="product-name">{{ item.product.name }}</h3>
+                                    <p class="product-price">${{ item.product.price }}</p>
+                                    <p class="product-quantity">Quantity: {{ item.quantity }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <button class="logout-button" id="logout-btn">Logout</button>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                localStorage.removeItem('access_token');
+                window.location.href = '/api/user/login';
+            });
+        });
+    </script>
+</body>
+</html>

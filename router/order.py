@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException,status
+from fastapi import APIRouter, Depends, HTTPException,status,Request
+from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from database.model import Order, OrderItem, Products, Cart
@@ -6,11 +7,13 @@ from schemas.schemas import OrderSchema, OrderCreate
 from database.database import get_db
 from auth.auth import verify_token
 from typing import List
+from fastapi.templating import Jinja2Templates
 
 order_router = APIRouter(
     tags=["Order"],
     prefix="/order"
 )
+templates = Jinja2Templates(directory="templates")
 
 @order_router.post("/create", response_model=OrderSchema)
 async def create_order(
@@ -85,7 +88,7 @@ async def get_order(
         ) from e
     
 
-@order_router.get("/", response_model=List[OrderSchema])
+@order_router.get("/orders", response_model=List[OrderSchema])
 async def get_all_orders(
     db: Session = Depends(get_db),
     user_id: int = Depends(verify_token)
@@ -175,4 +178,18 @@ async def delete_order(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal Server Error"
+        ) from e
+@order_router.get("/view", response_class=HTMLResponse)
+async def view_orders_page(
+    request: Request,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(verify_token)
+):
+    try:
+        orders = db.query(Order).filter(Order.user_id == user_id).all()
+        return templates.TemplateResponse("orders.html", {"request": request, "orders": orders})
+    except SQLAlchemyError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve orders"
         ) from e

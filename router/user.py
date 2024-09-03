@@ -56,14 +56,14 @@ async def create_user(
         db.add(new_user)
         db.commit()
         db.refresh(new_user)
+        # Redirect to the login page after successful user creation
+        return RedirectResponse(url="/api/user/login", status_code=status.HTTP_303_SEE_OTHER)
     except Exception as e:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occurred: {str(e)}"
         )
-    return 'added'
-   
 
 @user_router.get("/login", response_class=HTMLResponse)
 async def get_login_form(request: Request):
@@ -80,8 +80,9 @@ async def login(user_data: UserLoginSchema, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect password")
 
     access_token = create_access_token(data={"sub": str(user.id)})
-    # return JSONResponse(content={"access_token": access_token})
-    return RedirectResponse(url="/api/user/home",status_code=status.HTTP_302_FOUND)
+
+    # Return a JSON response with the access token if login is successful
+    return JSONResponse(content={"access_token": access_token})
 @user_router.get("/protected-endpoint", response_class=HTMLResponse)
 async def protected_endpoint(
     request: Request, 

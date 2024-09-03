@@ -22,15 +22,33 @@ security = HTTPBearer()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """
+    Create a JWT access token.
+
+    :param data: Dictionary containing the payload data (e.g., user ID).
+    :param expires_delta: Optional timedelta for setting a custom expiration time.
+    :return: Encoded JWT token as a string.
+    """
     to_encode = data.copy()
+
+    # Set the expiration time using datetime.now()
     if expires_delta:
-        expire = datetime.now() + expires_delta
+        expire = datetime.now() + expires_delta  # Use now() for local server time
     else:
         expire = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+
+    # Update the payload with the expiration time
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+
+    try:
+        # Encode the JWT with the payload, secret key, and algorithm
+        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+        return encoded_jwt
+    except Exception as e:
+        # Handle encoding errors
+        print(f"Error creating access token: {e}")
+        raise ValueError("Failed to create access token.")
 
 
 exp = 30
@@ -38,37 +56,36 @@ exp = 30
 
 def verify_token(authorization: str = Depends(oauth2_scheme)) -> int:
     try:
-        # Log the incoming authorization header
         print(f"Authorization Header Received: {authorization}")
 
         # if not isinstance(authorization, str):
-            # raise ValueError("Token is not a string.")
+        #     raise ValueError("Token is not a string.")
 
-        # Attempt to split the header into type and token
-        try:
-            token_type, token = authorization.split(" ", 1)  # Avoiding split error by specifying maxsplit
-            print(f"Token Type: {token_type}, Token: {token}")
-        except ValueError as e:
-            print(f"Error splitting token: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Malformed authorization header. Expected format: 'Bearer <token>'",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+        # # Check if the header contains a space before attempting to split
+        # if " " not in authorization:
+        #     raise HTTPException(
+        #         status_code=status.HTTP_401_UNAUTHORIZED,
+        #         detail="Malformed authorization header. Expected format: 'Bearer <token>'",
+        #         headers={"WWW-Authenticate": "Bearer"},
+        #     )
 
-        if token_type.lower() != "bearer":
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token type. Expected 'Bearer'.",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+        # # Split the header into type and token
+        # token_type, token = authorization.split(" ", 1)
+        # print(f"Token Type: {token_type}, Token: {token}")
+
+        # if token_type.lower() != "bearer":
+        #     raise HTTPException(
+        #         status_code=status.HTTP_401_UNAUTHORIZED,
+        #         detail="Invalid token type. Expected 'Bearer'.",
+        #         headers={"WWW-Authenticate": "Bearer"},
+        #     )
 
         # Decode the token and verify its payload
+        token=authorization
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
             print(f"Decoded Payload: {payload}")
-        except jwt.ExpiredSignatureError as e:
-            print(e)
+        except jwt.ExpiredSignatureError:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token has expired",

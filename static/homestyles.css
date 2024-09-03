@@ -6,18 +6,19 @@ body {
 }
 
 .container {
-    width: 80%;
+    width: 90%;
     max-width: 1200px;
-    margin: 0 auto;
+    margin: 20px auto;
     padding: 20px;
     background: #fff;
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
     color: #333;
     text-align: center;
+    margin-bottom: 30px;
 }
 
 .product-list {
@@ -30,10 +31,15 @@ h1 {
 .product-card {
     background: #fff;
     border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-    width: 300px;
+    width: 280px;
     text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover {
+    transform: scale(1.05);
 }
 
 .product-image {
@@ -43,7 +49,7 @@ h1 {
 }
 
 .product-info {
-    padding: 10px;
+    padding: 15px;
 }
 
 .product-name {
@@ -59,28 +65,73 @@ h1 {
 }
 
 .add-to-cart {
-    padding: 10px 20px;
+    padding: 12px 20px;
     border: none;
-    background: #007bff;
+    background: #0069d9;
     color: #fff;
     border-radius: 4px;
     cursor: pointer;
     font-size: 16px;
+    transition: background-color 0.3s ease;
 }
 
-.add-to-cart:hover {
-    background: #0056b3;
+.add-to-cart:hover, .add-to-cart:focus {
+    background: #004bb7;
+    outline: none;
 }
 
 button {
-    padding: 10px 20px;
+    padding: 12px 20px;
     border: none;
-    background: #007bff;
+    background: #0069d9;
     color: #fff;
     border-radius: 4px;
     cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
 }
 
-button:hover {
-    background: #0056b3;
+button:hover, button:focus {
+    background: #004bb7;
+    outline: none;
+}
+
+button:focus-visible, .add-to-cart:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 4px;
+}
+
+.logout-button {
+    display: block;
+    margin: 30px auto;
+    padding: 12px 20px;
+    background-color: #dc3545;
+}
+
+.logout-button:hover, .logout-button:focus {
+    background-color: #c82333;
+}
+
+.top-buttons {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+}
+
+.view-cart-button,
+.view-orders-button {
+    padding: 12px 20px;
+    background: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    margin-left: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.view-cart-button:hover,
+.view-orders-button:hover {
+    background-color: #218838;
 }

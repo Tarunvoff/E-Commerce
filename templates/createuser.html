@@ -90,9 +90,19 @@
                 document.getElementById("mobno-error").textContent = "Please enter a valid 10-digit mobile number.";
                 isValid = false;
             }
+            function validateForm() {
+            // Your existing validation logic
+            let isValid = true;
 
-            return isValid;
+            // Show some feedback if validation passes
+            if (isValid) {
+                alert("User created successfully! Redirecting to login...");
+            }
+
+            
         }
+        return isValid;
+    }
     </script>
 </body>
 </html>

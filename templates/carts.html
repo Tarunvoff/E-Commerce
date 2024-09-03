@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Cart</title>
+    <link rel="stylesheet" href="/static/cartstyles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Your Cart</h1>
+        <div id="cart-list" class="product-list">
+            {% for item in cart_items %}
+                <div class="cart-card">
+                    <img src="{{ item.product.image_url }}" alt="{{ item.product.name }}" class="product-image">
+                    <div class="cart-info">
+                        <h2 class="product-name">{{ item.product.name }}</h2>
+                        <p class="product-price">${{ item.product.price }}</p>
+                        <p class="product-quantity">Quantity: {{ item.quantity }}</p>
+                        <button onclick="updateCart('{{ item.id }}')">Update</button>
+                        <button onclick="deleteCart('{{ item.id }}')">Delete</button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <button class="logout-button" id="logout-btn">Logout</button>
+    </div>
+
+    <script>
+        function updateCart(cartId) {
+            // Redirect to update cart page
+            window.location.href = `/cart/update/${cartId}`;
+        }
+
+        function deleteCart(cartId) {
+            fetch(`/cart/delete/${cartId}`, { method: 'DELETE' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Item removed from cart!');
+                        window.location.reload();
+                    } else {
+                        alert('Failed to remove item from cart.');
+                    }
+                });
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                localStorage.removeItem('access_token');
+                window.location.href = '/api/user/login';
+            });
+        });
+    </script>
+</body>
+</html>
