@@ -101,6 +101,11 @@ async def protected_endpoint(
 @user_router.get("/home", response_class=HTMLResponse)
 async def home_page(request: Request, db: Session = Depends(get_db)):
     products = db.query(model.Products).all()
+
+    # Format the price to 2 decimal places in Python
+    for product in products:
+        product.price = round(product.price, 2)
+
     return templates.TemplateResponse("home.html", {"request": request, "products": products})
 
 

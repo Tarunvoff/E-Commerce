@@ -56,33 +56,16 @@ exp = 30
 
 def verify_token(authorization: str = Depends(oauth2_scheme)) -> int:
     try:
+        if not authorization:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authorization header missing",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
         print(f"Authorization Header Received: {authorization}")
-
-        # if not isinstance(authorization, str):
-        #     raise ValueError("Token is not a string.")
-
-        # # Check if the header contains a space before attempting to split
-        # if " " not in authorization:
-        #     raise HTTPException(
-        #         status_code=status.HTTP_401_UNAUTHORIZED,
-        #         detail="Malformed authorization header. Expected format: 'Bearer <token>'",
-        #         headers={"WWW-Authenticate": "Bearer"},
-        #     )
-
-        # # Split the header into type and token
-        # token_type, token = authorization.split(" ", 1)
-        # print(f"Token Type: {token_type}, Token: {token}")
-
-        # if token_type.lower() != "bearer":
-        #     raise HTTPException(
-        #         status_code=status.HTTP_401_UNAUTHORIZED,
-        #         detail="Invalid token type. Expected 'Bearer'.",
-        #         headers={"WWW-Authenticate": "Bearer"},
-        #     )
-
-        # Decode the token and verify its payload
         token=authorization
         try:
+
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
             print(f"Decoded Payload: {payload}")
         except jwt.ExpiredSignatureError:

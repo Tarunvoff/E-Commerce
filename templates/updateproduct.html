@@ -1,0 +1,97 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Product</title>
+    <link rel="stylesheet" href="/static/updateProduct.css">
+</head>
+<body>
+    <h1>Update Product</h1>
+    <form id="update-form">
+        <input type="hidden" id="product-id" value="{{ product.id }}" />
+
+        <label for="name">Name:</label>
+        <input type="text" id="name" value="{{ product.name }}" required />
+
+        <label for="description">Description:</label>
+        <textarea id="description" required>{{ product.description }}</textarea>
+
+        <label for="price">Price:</label>
+        <input type="number" id="price" value="{{ product.price }}" step="0.01" required />
+
+        <label for="stock">Stock:</label>
+        <input type="number" id="stock" value="{{ product.stock }}" required />
+
+        <label for="image_url">Image URL:</label>
+        <input type="text" id="image_url" value="{{ product.image_url }}" />
+
+        <button type="submit">Update Product</button>
+        <button type="button" id="delete-button">Delete Product</button>
+    </form>
+
+    <script>
+        document.getElementById('update-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const productId = document.getElementById('product-id').value;
+            const formData = {
+                name: document.getElementById('name').value,
+                description: document.getElementById('description').value,
+                price: parseFloat(document.getElementById('price').value),
+                stock: parseInt(document.getElementById('stock').value),
+                image_url: document.getElementById('image_url').value
+            };
+
+            try {
+                const response = await fetch(`/api/products/${productId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    alert('Product updated successfully!');
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.detail}`);
+                }
+            } catch (error) {
+                console.error('An error occurred:', error);
+                alert('Failed to update product.');
+            }
+        });
+
+        // Delete product confirmation
+        document.getElementById('delete-button').addEventListener('click', async function () {
+            const productId = document.getElementById('product-id').value;
+            const confirmation = confirm('Are you sure you want to delete this product?');
+
+            if (confirmation) {
+                try {
+                    const response = await fetch(`/api/products/${productId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        alert('Product deleted successfully!');
+                        window.location.href = '/products';
+                    } else {
+                        const errorData = await response.json();
+                        alert(`Error: ${errorData.detail}`);
+                    }
+                } catch (error) {
+                    console.error('An error occurred:', error);
+                    alert('Failed to delete product.');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -3,130 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+    <title>Home - Shop</title>
     <link rel="stylesheet" href="/static/homestyles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <!-- Top navigation buttons -->
         <div class="top-buttons">
-            <button class="view-cart-button" onclick="viewCart()">View Cart</button>
-            <button class="view-orders-button" onclick="viewOrders()">View Orders</button>
+            <button class="view-cart-button" onclick="viewCart()">🛒 View Cart</button>
+            <button class="view-orders-button" onclick="viewOrders()">📦 View Orders</button>
+            <button class="add-product-button" onclick="openAddProductForm()">➕ Add Product</button>
         </div>
 
-        <h1>Welcome to Our Shop</h1>
+        <h1 class="shop-title">Welcome to Our Shop</h1>
+
         <div id="product-list" class="product-list">
             {% for product in products %}
                 <div class="product-card">
                     <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image">
                     <div class="product-info">
                         <h2 class="product-name">{{ product.name }}</h2>
-                        <p class="product-price">${{ product.price }}</p>
+                        <p class="product-price">${{ "%.2f"|format(product.price) }}</p>
                         <input type="number" id="quantity-{{ product.id }}" value="1" min="1" />
-                        <button class="add-to-cart" onclick="addToCart('{{ product.id }}')">Add to Cart</button>
+                        <div class="action-buttons">
+                            <button class="add-to-cart" onclick="addToCart('{{ product.id }}')">Add to Cart</button>
+                            <button class="update-product" onclick="openUpdateProductForm('{{ product.id }}')">Update</button>
+                        </div>
                     </div>
                 </div>
             {% endfor %}
         </div>
-        <button class="logout-button" id="logout-btn">Logout</button>
+
+        <button class="logout-button" id="logout-btn">🚪 Logout</button>
     </div>
 
     <script>
-        // Function to handle logout
+        // Logout handler
         function logout() {
             localStorage.removeItem('access_token');
             window.location.href = '/api/user/login';
         }
 
-        // Async function to handle adding products to the cart
+        // Add to Cart function
         async function addToCart(productId) {
-            const quantityElement = document.getElementById(`quantity-${productId}`);
-            const quantity = quantityElement.value;
+            const quantity = document.getElementById(`quantity-${productId}`).value;
 
             try {
                 const response = await fetch('/cart/cart/add', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                     },
                     body: JSON.stringify({ product_id: productId, quantity: parseInt(quantity, 10) })
                 });
 
                 const data = await response.json();
-
                 if (response.ok) {
-                    alert(data.message || "Added to cart!");
+                    alert("Added to cart!");
                 } else {
-                    alert(data.detail || "Error adding to cart.");
+                    alert(data.detail || "Failed to add to cart.");
                 }
             } catch (error) {
                 alert("An error occurred while adding to the cart.");
             }
         }
 
-        // Function to view cart items
+        // View Cart handler
         async function viewCart() {
-        try {
-            const response = await fetch('/cart/items', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            try {
+                const response = await fetch('/cart/items', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const cartItems = await response.json();
+                    alert(JSON.stringify(cartItems, null, 2));
+                } else {
+                    alert("Failed to load cart items.");
                 }
-            });
-
-            if (response.ok) {
-                const cartItems = await response.json();
-                console.log(cartItems); // Handle cart data (e.g., display in a modal or update the page)
-                // Example of showing cart items in an alert or updating DOM
-                alert(JSON.stringify(cartItems, null, 2)); // Simple display
-                // Optionally, you can update the DOM with cartItems here
-            } else {
-                alert("Failed to load cart items.");
+            } catch (error) {
+                alert("Error fetching cart items.");
             }
-        } catch (error) {
-            alert("An error occurred while fetching cart items.");
         }
-    }
 
-    // Function to view orders
-    async function viewOrders() {
-        try {
-            const response = await fetch('order/orders', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+        // View Orders handler
+        async function viewOrders() {
+            try {
+                const response = await fetch('/order/orders', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const orders = await response.json();
+                    alert(JSON.stringify(orders, null, 2));
+                } else {
+                    alert("Failed to load orders.");
                 }
-            });
-
-            if (response.ok) {
-                const orders = await response.json();
-                console.log(orders); // Handle orders data (e.g., display in a modal or update the page)
-                // Example of showing orders in an alert or updating DOM
-                alert(JSON.stringify(orders, null, 2)); // Simple display
-                // Optionally, you can update the DOM with orders here
-            } else {
-                alert("Failed to load orders.");
+            } catch (error) {
+                alert("Error fetching orders.");
             }
-        } catch (error) {
-            alert("An error occurred while fetching orders.");
         }
-    }
-        // function viewCart() {
-        //      window.location.href = '/cart/items';
-        //     }
 
-        // Attach event listener on DOM load
+        // Open Add Product form
+        function openAddProductForm() {
+            window.location.href = '/products/add-product';
+        }
+
+        // Open Update Product form with ID
+        function openUpdateProductForm(productId) {
+            window.location.href = `/products/update-product/${productId}`;
+        }
+
+        // Attach event listener for logout
         document.addEventListener("DOMContentLoaded", () => {
             const token = localStorage.getItem('access_token');
             if (!token) {
                 window.location.href = '/login';
             }
-
             document.getElementById('logout-btn').addEventListener('click', logout);
+            const prices = document.querySelectorAll('.product-price');
+            prices.forEach(priceElement => {
+            const priceValue = parseFloat(priceElement.getAttribute('data-price'));
+            priceElement.textContent = `$${priceValue.toFixed(2)}`;
+            });
         });
+        const imageElement = document.createElement('img');
+        imageElement.src = product.image_url;
+
     </script>
 </body>
 </html>

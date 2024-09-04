@@ -1,0 +1,77 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    margin-bottom: 20px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin-bottom: 5px;
+}
+
+input, textarea {
+    margin-bottom: 15px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    padding: 10px 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button#delete-button {
+    background-color: #dc3545;
+    margin-top: 10px;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+button {
+    margin: 10px; /* Adds spacing around each button */
+    padding: 10px 20px; /* Optional: Adjust padding for a better look */
+    font-size: 16px; /* Optional: Adjust font size */
+}
+
+button#delete-button {
+    background-color: red; /* Specific style for the delete button */
+    color: white;
+}
+
+button#update-button {
+    background-color: green; /* Specific style for the update button */
+    color: white;
+}
+
+form {
+    display: flex;
+    flex-direction: column; /* Stack the form elements vertically */
+    align-items: center; /* Center-align the buttons horizontally */
+}
