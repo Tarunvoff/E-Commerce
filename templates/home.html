@@ -95,10 +95,10 @@
         // View Orders handler
         async function viewOrders() {
             try {
-                const response = await fetch('/order/orders', {
+                const response = await fetch('/order/view', {
                     method: 'GET',
                     headers: {
-                        'Content-Type': 'application/json',
+
                         'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                     }
                 });

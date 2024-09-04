@@ -177,7 +177,7 @@ async def create_product(
         db.commit()
         db.refresh(new_product)
         # Redirect to a page (e.g., product list) after successful creation
-        return RedirectResponse(url="/api/products/list", status_code=status.HTTP_303_SEE_OTHER)
+        return RedirectResponse(url="/api/products/views", status_code=status.HTTP_303_SEE_OTHER)
     except Exception as e:
         db.rollback()
         raise HTTPException(
